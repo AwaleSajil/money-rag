@@ -295,6 +295,11 @@ chmod +x docker-run.sh
 - **FastMCP**: Model Context Protocol
 - **Streamlit**: Web interface
 
+## Contributors
+
+- **Sajil Awale** - [GitHub](https://github.com/AwaleSajil)
+- **Simran KC** - [GitHub](https://github.com/iamsims)
+
 ## License
 
 MIT

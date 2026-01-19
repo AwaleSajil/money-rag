@@ -25,6 +25,11 @@ with st.sidebar:
     if auth_button and api_key:
         st.session_state.rag = MoneyRAG(provider, model_name, embed_name, api_key)
         st.success("Authenticated!")
+    
+    st.divider()
+    st.caption("**Contributors:**")
+    st.caption("👤 [Sajil Awale](https://github.com/AwaleSajil)")
+    st.caption("👤 [Simran KC](https://github.com/iamsims)")
 
 # Main Window
 st.title("MoneyRAG 💰")
