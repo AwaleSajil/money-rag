@@ -1,3 +1,14 @@
+---
+title: Moneyrag
+emoji: 💰
+colorFrom: purple
+colorTo: indigo
+sdk: docker
+pinned: false
+license: apache-2.0
+short_description: Where did my money go? Chat with your bank statements
+app_port: 8501
+---
 # MoneyRAG - Personal Finance Transaction Analysis
 
 AI-powered financial transaction analysis using RAG (Retrieval-Augmented Generation) with Model Context Protocol (MCP) integration.
