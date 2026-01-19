@@ -1,7 +1,7 @@
 from fastmcp import FastMCP
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
-from langchain_google_vertexai import VertexAIEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from dotenv import load_dotenv
 import os
 
@@ -59,7 +59,6 @@ def get_schema_info() -> str:
 def get_database_schema() -> str:
     """Complete schema information for the money_rag database."""
     return get_schema_info()
-
 
 @mcp.tool()
 def query_database(query: str) -> str:
@@ -122,9 +121,8 @@ def query_database(query: str) -> str:
 
 def get_vector_store():
     """Initialize connection to the Qdrant vector store"""
-    # Initialize Embedding Model
-    # Uses environment variables/default gcloud auth
-    embeddings = VertexAIEmbeddings(model_name="text-embedding-005")
+    # Initialize Embedding Model using Google AI Studio
+    embeddings = GoogleGenerativeAIEmbeddings(model="text-embedding-004")
 
     # Connect to Qdrant (Persistent Disk Mode at specific path)
     # We ensure the directory exists so Qdrant can write to it.
@@ -196,4 +194,4 @@ def clear_database() -> str:
 
 if __name__ == "__main__":
     # Runs the server over stdio
-    mcp.run()
+    mcp.run(transport="stdio")
