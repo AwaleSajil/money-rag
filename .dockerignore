@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Environment files
+.env.local
+.env.*.local
+
+# Git
+.git/
+.gitignore
+
+# Temporary files
+*.log
+*.sqlite
+*.db
+temp_data/
+qdrant_db/
+merchant_cache.json
+
+# Data files (upload via UI instead)
+demo_data/
+data/
+
+# Logs
+logs/
+*.log
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+ARCHITECTURE.md
+*.md
+
+# macOS
+.DS_Store
+
+# Notebooks (testing only)
+notebooks/

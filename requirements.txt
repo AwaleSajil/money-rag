@@ -39,4 +39,5 @@ requests>=2.32.5
 tenacity>=9.1.2
 
 
-streamlit
+streamlit>=1.53.0
+ddgs>=9.10.0
