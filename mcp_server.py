@@ -1,3 +1,5 @@
+import pandas as pd
+import plotly.express as px
 from fastmcp import FastMCP
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
@@ -179,6 +181,50 @@ def semantic_search(query: str, top_k: int = 5) -> str:
         
     except Exception as e:
         return f"Error performing search: {str(e)}"
+
+
+@mcp.tool()
+def generate_interactive_chart(sql_query: str, chart_type: str, x_col: str, y_col: str, title: str) -> str:
+    """
+    Generate an interactive Plotly chart from the money_rag SQLite database.
+    Use this proactively whenever a visual representation of data would be helpful.
+    
+    CRITICAL INSTRUCTIONS:
+    1. Write a valid SQLite SELECT query. 
+    2. Aggregate data appropriately (e.g., use GROUP BY for pie/bar charts).
+    3. Pass the exact column names from your query to x_col and y_col.
+    
+    Args:
+        sql_query: The SQL SELECT query (e.g. "SELECT category, SUM(amount) as total FROM transactions GROUP BY category")
+        chart_type: Must be exactly "bar", "pie", or "line"
+        x_col: Column name from query for X-axis (or labels for pie)
+        y_col: Column name from query for Y-axis (or values for pie)
+        title: Title of the chart
+    """
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        df = pd.read_sql_query(sql_query, conn)
+        conn.close()
+        if df.empty:
+            return '{"error": "No data found for this query."}'
+        if chart_type == "bar":
+            fig = px.bar(df, x=x_col, y=y_col, title=title)
+        elif chart_type == "pie":
+            fig = px.pie(df, names=x_col, values=y_col, title=title)
+        elif chart_type == "line":
+            fig = px.line(df, x=x_col, y=y_col, title=title)
+        else:
+            return f'{{"error": "Unsupported chart type: {chart_type}"}}'
+        # Write the huge JSON to a temp file instead of returning it directly to LLM context
+        chart_path = os.path.join(DATA_DIR, "latest_chart.json")
+        with open(chart_path, "w") as f:
+            f.write(fig.to_json())
+            
+        return "Chart generated successfully! It has been sent to the user's UI. Continue analyzing without outputting the JSON parameters directly."
+        
+    except Exception as e:
+        return f'{{"error": "Failed to generate chart: {str(e)}"}}'
+
 
 # A helper to clear data (useful for session reset)
 @mcp.tool()

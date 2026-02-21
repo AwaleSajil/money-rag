@@ -1,6 +1,8 @@
 import streamlit as st
 import asyncio
 import os
+import json
+import plotly.io as pio
 from money_rag import MoneyRAG
 
 st.set_page_config(page_title="MoneyRAG", layout="wide")
@@ -12,7 +14,7 @@ with st.sidebar:
     
     if provider == "Google":
         models = ["gemini-3-flash-preview", "gemini-3-pro-image-preview", "gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
-        embeddings = ["text-embedding-004"]
+        embeddings = ["gemini-embedding-001"]
     else:
         models = ["gpt-5-mini", "gpt-5-nano", "gpt-4o-mini", "gpt-4o"]
         embeddings = ["text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"]
@@ -85,10 +87,34 @@ if "rag" in st.session_state:
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # Helper function to cleverly render either text or a Plotly chart
+    def render_content(content):
+        # We might have mixed text and charts delimited by ===CHART=== ... ===ENDCHART===
+        if isinstance(content, str) and "===CHART===" in content:
+            parts = content.split("===CHART===")
+            # Render first text part
+            st.markdown(parts[0].strip())
+            
+            for part in parts[1:]:
+                if "===ENDCHART===" in part:
+                    chart_json, remaining_text = part.split("===ENDCHART===")
+                    try:
+                        fig = pio.from_json(chart_json.strip())
+                        st.plotly_chart(fig, use_container_width=True)
+                    except Exception as e:
+                        st.error("Failed to render chart.")
+                    
+                    if remaining_text.strip():
+                        st.markdown(remaining_text.strip())
+        else:
+            st.markdown(content)
+
+    # Render previous messages
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            render_content(message["content"])
 
+    # Handle new user input
     if prompt := st.chat_input("Ask about your spending..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -97,7 +123,9 @@ if "rag" in st.session_state:
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 response = asyncio.run(st.session_state.rag.chat(prompt))
-                st.markdown(response)
+                render_content(response)
+                
         st.session_state.messages.append({"role": "assistant", "content": response})
+
 else:
     st.info("Please authenticate in the sidebar to start.")

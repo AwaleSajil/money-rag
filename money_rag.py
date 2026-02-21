@@ -209,6 +209,9 @@ class MoneyRAG:
             "You are a financial analyst. Use the provided tools to query the database "
             "and perform semantic searches. Spending is POSITIVE (>0). "
             "Always explain your findings clearly."
+            "IMPORTANT: Whenever possible and relevant (e.g. when discussing trends, comparing categories, or showing breakdowns), "
+            "you MUST proactively use the 'generate_interactive_chart' tool to generate visual plots (bar, pie, or line charts) to accompany your analysis. "
+            "WARNING: You MUST use the actual tool call to generate the chart. DO NOT simply output a json block with chart parameters as your final text answer."
         )
         
         self.agent = create_agent(
@@ -220,6 +223,11 @@ class MoneyRAG:
 
     async def chat(self, query: str):
         config = {"configurable": {"thread_id": "session_1"}}
+        
+        # Clear out any previous chart so we don't carry over stale plots
+        chart_path = os.path.join(self.temp_dir, "latest_chart.json")
+        if os.path.exists(chart_path):
+            os.remove(chart_path)
         
         result = await self.agent.ainvoke(
             {"messages": [{"role": "user", "content": query}]},
@@ -235,10 +243,18 @@ class MoneyRAG:
             for block in content:
                 if isinstance(block, dict) and block.get("type") == "text":
                     text_parts.append(block.get("text", ""))
-            return "\n".join(text_parts)
-        
-        # If content is already a string (OpenAI format), return as-is
-        return content
+            final_text = "\n".join(text_parts)
+        else:
+            final_text = content
+            
+        # Check if the tool generated a chart file on disk during this turn
+        chart_path = os.path.join(self.temp_dir, "latest_chart.json")
+        if os.path.exists(chart_path):
+            with open(chart_path, "r") as f:
+                chart_json = f.read()
+            final_text += f"\n\n===CHART===\n{chart_json}\n===ENDCHART==="
+            
+        return final_text
 
     async def cleanup(self):
         """Delete temporary session files and close MCP client."""
